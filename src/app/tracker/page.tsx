@@ -3,19 +3,31 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { MY_CARDS } from '@/lib/cards'
-import { getEntries, deleteEntry, getMonthSpend, type SpendEntry } from '@/lib/spend'
+import {
+  getEntries,
+  deleteEntry,
+  getMonthSpend,
+  getResetDays,
+  setResetDay,
+  getCycleStart,
+  type SpendEntry,
+} from '@/lib/spend'
 
 export default function Tracker() {
   const [entries, setEntries] = useState<SpendEntry[]>([])
   const [monthSpend, setMonthSpend] = useState<Record<string, number>>({})
+  const [resetDays, setResetDays] = useState<Record<string, number>>({})
+  const [editingReset, setEditingReset] = useState<string | null>(null)
+  const [resetInput, setResetInput] = useState('')
 
   function refresh() {
-    setEntries(getEntries().slice().reverse()) // newest first
+    setEntries(getEntries().slice().reverse())
     const spend: Record<string, number> = {}
     for (const card of MY_CARDS) {
       spend[card.id] = getMonthSpend(card.id)
     }
     setMonthSpend(spend)
+    setResetDays(getResetDays())
   }
 
   useEffect(() => { refresh() }, [])
@@ -25,8 +37,20 @@ export default function Tracker() {
     refresh()
   }
 
-  const now = new Date()
-  const monthLabel = now.toLocaleString('en-SG', { month: 'long', year: 'numeric' })
+  function handleResetSave(cardId: string) {
+    const day = parseInt(resetInput)
+    if (day >= 1 && day <= 28) {
+      setResetDay(cardId, day)
+      refresh()
+    }
+    setEditingReset(null)
+    setResetInput('')
+  }
+
+  function startEdit(cardId: string) {
+    setEditingReset(cardId)
+    setResetInput(String(resetDays[cardId] ?? 1))
+  }
 
   return (
     <main className="min-h-screen bg-gray-950 text-white">
@@ -46,8 +70,10 @@ export default function Tracker() {
 
       <div className="max-w-2xl mx-auto px-4 py-10">
         {/* Cap usage */}
-        <h2 className="text-lg font-semibold mb-1">Cap usage — {monthLabel}</h2>
-        <p className="text-gray-400 text-sm mb-5">How much of each card's bonus cap you've used.</p>
+        <h2 className="text-lg font-semibold mb-1">Cap usage</h2>
+        <p className="text-gray-400 text-sm mb-5">
+          Spend since your statement date. Tap the reset date to change it.
+        </p>
 
         <div className="space-y-3 mb-10">
           {MY_CARDS.map(card => {
@@ -56,20 +82,23 @@ export default function Tracker() {
             const pct = cap ? Math.min((spent / cap) * 100, 100) : 0
             const remaining = cap ? Math.max(cap - spent, 0) : null
             const full = cap !== null && spent >= cap
+            const resetDay = resetDays[card.id] ?? 1
+            const cycleStart = getCycleStart(card.id)
+            const cycleStartStr = cycleStart.toLocaleDateString('en-SG', { day: 'numeric', month: 'short' })
+            const isEditing = editingReset === card.id
 
             return (
               <div key={card.id} className="bg-gray-900 border border-gray-800 rounded-2xl p-4">
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2">
-                    <div className="w-1 h-4 rounded-full" style={{ backgroundColor: card.color }} />
+                    <div className="w-1 h-4 rounded-full flex-shrink-0" style={{ backgroundColor: card.color }} />
                     <span className="font-medium text-sm">{card.name}</span>
                     {full && (
                       <span className="text-xs bg-red-900 text-red-300 px-2 py-0.5 rounded-full">Cap reached</span>
                     )}
                   </div>
                   <span className="text-sm text-gray-300">
-                    ${spent.toFixed(0)}
-                    {cap ? ` / $${cap}` : ' (no cap)'}
+                    ${spent.toFixed(0)}{cap ? ` / $${cap}` : ' (no cap)'}
                   </span>
                 </div>
 
@@ -82,11 +111,55 @@ export default function Tracker() {
                   </div>
                 )}
 
-                {remaining !== null && (
-                  <p className="text-xs text-gray-500 mt-1.5">
-                    {full ? 'Use a different card for this category' : `$${remaining.toFixed(0)} remaining at ${card.earn_rate} mpd`}
+                <div className="mt-2 flex items-center justify-between">
+                  <p className="text-xs text-gray-500">
+                    {full
+                      ? 'Use a different card for this category'
+                      : remaining !== null
+                        ? `$${remaining.toFixed(0)} remaining at ${card.earn_rate} mpd`
+                        : `${card.earn_rate} mpd, no cap`}
                   </p>
-                )}
+
+                  {/* Reset date control */}
+                  {isEditing ? (
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-xs text-gray-400">Day</span>
+                      <input
+                        type="number"
+                        min={1}
+                        max={28}
+                        value={resetInput}
+                        onChange={e => setResetInput(e.target.value)}
+                        onKeyDown={e => {
+                          if (e.key === 'Enter') handleResetSave(card.id)
+                          if (e.key === 'Escape') setEditingReset(null)
+                        }}
+                        autoFocus
+                        className="w-14 bg-gray-800 border border-gray-600 rounded-lg px-2 py-0.5 text-xs text-white focus:outline-none focus:border-blue-500"
+                      />
+                      <button
+                        onClick={() => handleResetSave(card.id)}
+                        className="text-xs text-blue-400 hover:text-blue-300"
+                      >
+                        Save
+                      </button>
+                      <button
+                        onClick={() => setEditingReset(null)}
+                        className="text-xs text-gray-500 hover:text-gray-300"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() => startEdit(card.id)}
+                      className="text-xs text-gray-600 hover:text-gray-400 transition"
+                      title="Change statement date"
+                    >
+                      Resets {resetDay === 1 ? 'monthly' : `on the ${resetDay}th`} · since {cycleStartStr}
+                    </button>
+                  )}
+                </div>
               </div>
             )
           })}
@@ -94,7 +167,7 @@ export default function Tracker() {
 
         {/* Transaction log */}
         <h2 className="text-lg font-semibold mb-1">Transaction log</h2>
-        <p className="text-gray-400 text-sm mb-5">All logged spend this month.</p>
+        <p className="text-gray-400 text-sm mb-5">All logged spend this cycle.</p>
 
         {entries.length === 0 ? (
           <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6 text-center text-gray-500 text-sm">
