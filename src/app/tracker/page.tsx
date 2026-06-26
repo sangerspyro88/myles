@@ -10,6 +10,8 @@ import {
   getResetDays,
   setResetDay,
   getCycleStart,
+  resetCardSpend,
+  resetAllSpend,
   type SpendEntry,
 } from '@/lib/spend'
 
@@ -19,13 +21,12 @@ export default function Tracker() {
   const [resetDays, setResetDays] = useState<Record<string, number>>({})
   const [editingReset, setEditingReset] = useState<string | null>(null)
   const [resetInput, setResetInput] = useState('')
+  const [confirmReset, setConfirmReset] = useState<string | null>(null) // cardId or 'all'
 
   function refresh() {
     setEntries(getEntries().slice().reverse())
     const spend: Record<string, number> = {}
-    for (const card of MY_CARDS) {
-      spend[card.id] = getMonthSpend(card.id)
-    }
+    for (const card of MY_CARDS) spend[card.id] = getMonthSpend(card.id)
     setMonthSpend(spend)
     setResetDays(getResetDays())
   }
@@ -47,9 +48,15 @@ export default function Tracker() {
     setResetInput('')
   }
 
-  function startEdit(cardId: string) {
-    setEditingReset(cardId)
-    setResetInput(String(resetDays[cardId] ?? 1))
+  function handleConfirmReset() {
+    if (!confirmReset) return
+    if (confirmReset === 'all') {
+      resetAllSpend()
+    } else {
+      resetCardSpend(confirmReset)
+    }
+    setConfirmReset(null)
+    refresh()
   }
 
   return (
@@ -60,16 +67,12 @@ export default function Tracker() {
           <span className="text-xl font-bold tracking-tight text-stone-800">Myles</span>
           <span className="text-stone-300 text-sm">Miles card optimizer</span>
         </div>
-        <Link
-          href="/"
-          className="text-sm text-stone-400 hover:text-stone-700 transition px-3 py-1.5 rounded-lg hover:bg-stone-50"
-        >
+        <Link href="/" className="text-sm text-stone-400 hover:text-stone-700 transition px-3 py-1.5 rounded-lg hover:bg-stone-50">
           ← Card finder
         </Link>
       </div>
 
       <div className="max-w-2xl mx-auto px-4 py-10">
-        {/* Cap usage */}
         <h2 className="text-lg font-semibold text-stone-800 mb-1">Cap usage</h2>
         <p className="text-stone-400 text-sm mb-5">
           Spend since your statement date. Tap the reset label to change it.
@@ -86,6 +89,7 @@ export default function Tracker() {
             const cycleStart = getCycleStart(card.id)
             const cycleStartStr = cycleStart.toLocaleDateString('en-SG', { day: 'numeric', month: 'short' })
             const isEditing = editingReset === card.id
+            const isConfirming = confirmReset === card.id
 
             return (
               <div key={card.id} className="bg-white border border-stone-100 rounded-2xl p-4 shadow-sm">
@@ -106,15 +110,12 @@ export default function Tracker() {
                   <div className="h-1.5 bg-stone-100 rounded-full overflow-hidden">
                     <div
                       className="h-full rounded-full transition-all"
-                      style={{
-                        width: `${pct}%`,
-                        backgroundColor: full ? '#f87171' : '#0d4f6e',
-                      }}
+                      style={{ width: `${pct}%`, backgroundColor: full ? '#f87171' : '#0d4f6e' }}
                     />
                   </div>
                 )}
 
-                <div className="mt-2 flex items-center justify-between">
+                <div className="mt-2 flex items-center justify-between gap-2">
                   <p className="text-xs text-stone-400">
                     {full
                       ? 'Use a different card for this category'
@@ -123,44 +124,48 @@ export default function Tracker() {
                         : `${card.earn_rate} mpd, no cap`}
                   </p>
 
-                  {isEditing ? (
-                    <div className="flex items-center gap-1.5">
-                      <span className="text-xs text-stone-400">Day</span>
-                      <input
-                        type="number"
-                        min={1}
-                        max={28}
-                        value={resetInput}
-                        onChange={e => setResetInput(e.target.value)}
-                        onKeyDown={e => {
-                          if (e.key === 'Enter') handleResetSave(card.id)
-                          if (e.key === 'Escape') setEditingReset(null)
-                        }}
-                        autoFocus
-                        className="w-14 bg-stone-50 border border-stone-300 rounded-lg px-2 py-0.5 text-xs text-stone-800 focus:outline-none focus:border-stone-500"
-                      />
-                      <button
-                        onClick={() => handleResetSave(card.id)}
-                        className="text-xs font-medium hover:opacity-70 transition"
-                        style={{ color: '#0d4f6e' }}
-                      >
-                        Save
+                  <div className="flex items-center gap-2 flex-shrink-0">
+                    {/* Statement date editor */}
+                    {isEditing ? (
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-xs text-stone-400">Day</span>
+                        <input
+                          type="number" min={1} max={28}
+                          value={resetInput}
+                          onChange={e => setResetInput(e.target.value)}
+                          onKeyDown={e => {
+                            if (e.key === 'Enter') handleResetSave(card.id)
+                            if (e.key === 'Escape') setEditingReset(null)
+                          }}
+                          autoFocus
+                          className="w-14 bg-stone-50 border border-stone-300 rounded-lg px-2 py-0.5 text-xs text-stone-800 focus:outline-none focus:border-stone-500"
+                        />
+                        <button onClick={() => handleResetSave(card.id)} className="text-xs font-medium hover:opacity-70" style={{ color: '#0d4f6e' }}>Save</button>
+                        <button onClick={() => setEditingReset(null)} className="text-xs text-stone-400 hover:text-stone-600">Cancel</button>
+                      </div>
+                    ) : (
+                      <button onClick={() => { setEditingReset(card.id); setResetInput(String(resetDay)) }} className="text-xs text-stone-300 hover:text-stone-500 transition">
+                        Resets {resetDay === 1 ? 'monthly' : `on the ${resetDay}th`} · since {cycleStartStr}
                       </button>
+                    )}
+
+                    {/* Per-card reset */}
+                    {isConfirming ? (
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-xs text-stone-500">Clear this card?</span>
+                        <button onClick={handleConfirmReset} className="text-xs text-red-400 hover:text-red-600 font-medium">Yes</button>
+                        <button onClick={() => setConfirmReset(null)} className="text-xs text-stone-400 hover:text-stone-600">Cancel</button>
+                      </div>
+                    ) : (
                       <button
-                        onClick={() => setEditingReset(null)}
-                        className="text-xs text-stone-400 hover:text-stone-600"
+                        onClick={() => setConfirmReset(card.id)}
+                        className="text-xs text-stone-300 hover:text-red-400 transition"
+                        title="Reset this card's spend"
                       >
-                        Cancel
+                        Reset
                       </button>
-                    </div>
-                  ) : (
-                    <button
-                      onClick={() => startEdit(card.id)}
-                      className="text-xs text-stone-300 hover:text-stone-500 transition"
-                    >
-                      Resets {resetDay === 1 ? 'monthly' : `on the ${resetDay}th`} · since {cycleStartStr}
-                    </button>
-                  )}
+                    )}
+                  </div>
                 </div>
               </div>
             )
@@ -179,31 +184,39 @@ export default function Tracker() {
           <div className="space-y-2">
             {entries.map(entry => {
               const card = MY_CARDS.find(c => c.id === entry.cardId)
-              const date = new Date(entry.date)
-              const dateStr = date.toLocaleDateString('en-SG', { day: 'numeric', month: 'short' })
+              const dateStr = new Date(entry.date).toLocaleDateString('en-SG', { day: 'numeric', month: 'short' })
               return (
-                <div
-                  key={entry.id}
-                  className="bg-white border border-stone-100 rounded-xl px-4 py-3 flex items-center gap-3 shadow-sm"
-                >
+                <div key={entry.id} className="bg-white border border-stone-100 rounded-xl px-4 py-3 flex items-center gap-3 shadow-sm">
                   <div className="w-1 h-8 rounded-full flex-shrink-0" style={{ backgroundColor: card?.color || '#ccc' }} />
                   <div className="flex-1 min-w-0">
                     <div className="text-sm font-medium capitalize text-stone-800">{entry.merchant}</div>
                     <div className="text-xs text-stone-400">{card?.name} · {dateStr}</div>
                   </div>
                   <div className="text-sm font-semibold text-stone-700">${entry.amount.toFixed(2)}</div>
-                  <button
-                    onClick={() => handleDelete(entry.id)}
-                    className="text-stone-200 hover:text-red-400 transition text-xs ml-1"
-                    title="Delete"
-                  >
-                    ✕
-                  </button>
+                  <button onClick={() => handleDelete(entry.id)} className="text-stone-200 hover:text-red-400 transition text-xs ml-1" title="Delete">✕</button>
                 </div>
               )
             })}
           </div>
         )}
+
+        {/* Reset all */}
+        <div className="mt-10 pt-8 border-t border-stone-100 flex justify-center">
+          {confirmReset === 'all' ? (
+            <div className="flex items-center gap-3">
+              <span className="text-sm text-stone-500">Clear all spend data?</span>
+              <button onClick={handleConfirmReset} className="text-sm text-red-400 hover:text-red-600 font-medium">Yes, reset all</button>
+              <button onClick={() => setConfirmReset(null)} className="text-sm text-stone-400 hover:text-stone-600">Cancel</button>
+            </div>
+          ) : (
+            <button
+              onClick={() => setConfirmReset('all')}
+              className="text-sm text-stone-300 hover:text-red-400 transition"
+            >
+              Reset all spend data
+            </button>
+          )}
+        </div>
       </div>
     </main>
   )

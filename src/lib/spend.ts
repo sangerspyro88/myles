@@ -68,6 +68,18 @@ export function getCycleStart(cardId: string): Date {
   }
 }
 
+export function resetCardSpend(cardId: string): void {
+  const cycleStart = getCycleStart(cardId)
+  const entries = getEntries().filter(
+    e => !(e.cardId === cardId && new Date(e.date) >= cycleStart)
+  )
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(entries))
+}
+
+export function resetAllSpend(): void {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify([]))
+}
+
 // Returns total spend for a card in the current billing cycle
 export function getMonthSpend(cardId: string): number {
   const cycleStart = getCycleStart(cardId)
