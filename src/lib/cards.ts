@@ -347,7 +347,6 @@ export const MERCHANT_CATEGORY_MAP: Record<string, Category> = {
   'nintendo': 'entertainment',
   playstation: 'entertainment',
   xbox: 'entertainment',
-  'sistic': 'entertainment',
   sistic: 'entertainment',
   ticketmaster: 'entertainment',
   'sport singapore': 'entertainment',
