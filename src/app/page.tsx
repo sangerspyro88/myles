@@ -10,7 +10,7 @@ import {
   type Card,
 } from '@/lib/cards'
 import { addEntry, getMonthSpend } from '@/lib/spend'
-import { getWalletCards } from '@/lib/wallet'
+import { getWalletCards, getEffectiveCategories } from '@/lib/wallet'
 
 export default function Home() {
   const [merchant, setMerchant] = useState('')
@@ -38,10 +38,16 @@ export default function Home() {
     for (const card of walletCards) map[card.id] = getMonthSpend(card.id)
     setSpendMap(map)
 
-    // Top 3 matching cards from wallet that haven't hit their cap
-    const ranked = recommendCards(detected, walletCards)
+    // Build effective categories map for flex cards
+    const effectiveCategories: Record<string, Category[]> = {}
+    for (const card of walletCards) {
+      effectiveCategories[card.id] = getEffectiveCategories(card)
+    }
+
+    const ranked = recommendCards(detected, walletCards, effectiveCategories)
     const top3 = ranked.filter(c => {
-      if (!c.categories.includes(detected)) return false
+      const effCats = effectiveCategories[c.id] ?? c.categories
+      if (!effCats.includes(detected)) return false
       if (c.monthly_cap === 999999) return true
       return map[c.id] < c.monthly_cap
     }).slice(0, 3)
@@ -116,8 +122,8 @@ export default function Home() {
 
             {results.length === 0 ? (
               <div className="bg-white border border-stone-100 rounded-2xl p-6 text-center text-stone-400 text-sm shadow-sm">
-                All eligible cards have hit their monthly cap — or you have no cards in your wallet for this category.{' '}
-                <Link href="/wallet" className="underline hover:text-stone-600">Manage your wallet →</Link>
+                No eligible cards available — all capped, or none in your wallet cover this category.{' '}
+                <Link href="/wallet" className="underline hover:text-stone-600">Manage wallet →</Link>
               </div>
             ) : (
               <div className="space-y-3">
@@ -127,6 +133,8 @@ export default function Home() {
                   const pct = cap ? Math.min((spent / cap) * 100, 100) : 0
                   const remaining = cap ? Math.max(cap - spent, 0) : null
                   const isBest = i === 0
+                  const amount = parseFloat(logAmount[card.id] || '')
+                  const miles = amount > 0 ? Math.floor(amount * card.earn_rate) : null
 
                   return (
                     <div
@@ -168,6 +176,7 @@ export default function Home() {
                         </div>
                       )}
 
+                      {/* Log spend + miles calc */}
                       <div className="flex gap-2 items-center">
                         <span className="text-xs text-stone-300">Log spend:</span>
                         <div className="flex gap-1.5 flex-1 items-center">
@@ -179,10 +188,18 @@ export default function Home() {
                             onKeyDown={e => e.key === 'Enter' && handleLog(card.id)}
                             className="w-24 bg-stone-50 border border-stone-200 rounded-lg px-2 py-1 text-sm text-stone-800 placeholder-stone-300 focus:outline-none focus:border-stone-400"
                           />
+                          {miles !== null && (
+                            <span className="text-xs font-medium" style={{ color: '#0d4f6e' }}>
+                              = {miles.toLocaleString()} miles
+                            </span>
+                          )}
                           {logged[card.id] ? (
-                            <span className="text-xs text-emerald-500">✓ Logged</span>
+                            <span className="text-xs text-emerald-500 ml-1">✓ Logged</span>
                           ) : (
-                            <button onClick={() => handleLog(card.id)} className="text-xs bg-stone-100 hover:bg-stone-200 transition rounded-lg px-3 py-1 text-stone-600">
+                            <button
+                              onClick={() => handleLog(card.id)}
+                              className="text-xs bg-stone-100 hover:bg-stone-200 transition rounded-lg px-3 py-1 text-stone-600 ml-auto"
+                            >
                               Log
                             </button>
                           )}

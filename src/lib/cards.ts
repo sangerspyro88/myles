@@ -19,6 +19,7 @@ export interface Card {
   monthly_cap: number // SGD spending cap for bonus rate
   cap_note?: string  // extra detail about how the cap works
   categories: Category[]
+  flex_category?: boolean // user picks one active category (e.g. UOB Lady's)
   notes: string
 }
 
@@ -54,6 +55,7 @@ export const MY_CARDS: Card[] = [
     earn_rate: 4,
     base_rate: 0.4,
     monthly_cap: 1000,
+    flex_category: true,
     categories: ['dining', 'shopping_instore', 'shopping_online', 'entertainment', 'travel', 'transport', 'foreign_currency'],
     notes: 'Choose 1 bonus category per quarter. $1,000 cap/month on chosen category.',
   },
@@ -222,11 +224,17 @@ export function detectCategory(merchant: string): Category {
   return 'other'
 }
 
-export function recommendCards(category: Category, walletCards: Card[]): Card[] {
+// effectiveCategories overrides per-card categories (used for flex_category cards)
+export function recommendCards(
+  category: Category,
+  walletCards: Card[],
+  effectiveCategories: Record<string, Category[]> = {}
+): Card[] {
+  const getCategories = (c: Card) => effectiveCategories[c.id] ?? c.categories
   if (category === 'other') {
     return [...walletCards].sort((a, b) => b.base_rate - a.base_rate)
   }
-  const matching = walletCards.filter(c => c.categories.includes(category))
-  const rest = walletCards.filter(c => !c.categories.includes(category))
+  const matching = walletCards.filter(c => getCategories(c).includes(category))
+  const rest = walletCards.filter(c => !getCategories(c).includes(category))
   return [...matching, ...rest]
 }
