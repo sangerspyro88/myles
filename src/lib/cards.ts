@@ -163,7 +163,6 @@ export const MERCHANT_CATEGORY_MAP: Record<string, Category> = {
   'ride hailing': 'transport',
   'ride-hailing': 'transport',
   taxi: 'transport',
-  transport: 'transport',
   entertainment: 'entertainment',
   movies: 'entertainment',
   movie: 'entertainment',

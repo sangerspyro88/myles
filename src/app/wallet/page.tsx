@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import Link from 'next/link'
 import { MY_CARDS, CATEGORY_LABELS, type Category } from '@/lib/cards'
 import { getWalletIds, setWalletIds, getChosenCategories, setChosenCategory } from '@/lib/wallet'
 
@@ -37,14 +36,8 @@ export default function Wallet() {
 
   return (
     <main className="min-h-screen" style={{ backgroundColor: '#fffcf5' }}>
-      <div className="border-b border-stone-100 px-6 py-4 flex items-center justify-between bg-white">
-        <div className="flex items-center gap-3">
-          <span className="text-xl font-bold tracking-tight text-stone-800">Myles</span>
-          <span className="text-stone-300 text-sm">Miles card optimizer</span>
-        </div>
-        <Link href="/" className="text-sm text-stone-400 hover:text-stone-700 transition px-3 py-1.5 rounded-lg hover:bg-stone-50">
-          ← Card finder
-        </Link>
+      <div className="w-full px-5 pt-5 pb-2">
+        <span className="text-lg font-bold tracking-tight text-stone-800">Myles</span>
       </div>
 
       <div className="w-full max-w-lg mx-auto px-4 py-8">

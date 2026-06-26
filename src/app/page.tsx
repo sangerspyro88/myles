@@ -73,17 +73,18 @@ export default function Home() {
 
   return (
     <main className="min-h-screen w-full" style={{ backgroundColor: '#fffcf5' }}>
-      <div className="w-full max-w-lg mx-auto px-4">
+      {/* Top bar */}
+      <div className="w-full px-5 pt-5 pb-2">
+        <span className="text-lg font-bold tracking-tight text-stone-800">Myles</span>
+      </div>
 
-        {/* Hero block — centred, slides up after search */}
-        <div className={`flex flex-col items-center text-center ${searched ? 'pt-10' : 'pt-[28vh]'}`}>
-          <p className="text-xs font-semibold tracking-widest text-stone-400 uppercase mb-3">Myles</p>
+      <div className="w-full max-w-lg mx-auto px-4">
+        <div className={`flex flex-col items-center text-center ${searched ? 'pt-6' : 'pt-[20vh]'}`}>
           <h1 className="text-xl font-semibold text-stone-800 mb-1">Which card should I use?</h1>
           <p className="text-sm text-stone-400 mb-6">
             Type a merchant or category for the best miles card.
           </p>
 
-          {/* Search bar */}
           <div className="w-full flex gap-2">
             <input
               type="text"
@@ -102,25 +103,13 @@ export default function Home() {
               Find
             </button>
           </div>
-
-          {/* Nav links */}
-          <div className="mt-4 flex gap-6 justify-center">
-            <Link href="/tracker" className="text-sm text-stone-400 active:text-stone-600">
-              Spend Summary →
-            </Link>
-            <Link href="/wallet" className="text-sm text-stone-400 active:text-stone-600">
-              My Cards →
-            </Link>
-          </div>
         </div>
 
-        {/* Results */}
         {searched && (
-          <div className="mt-6 pb-12">
+          <div className="mt-6 pb-4">
             {category && (
               <p className="text-xs text-stone-400 mb-3 text-center">
-                Category:{' '}
-                <span className="text-stone-600 font-medium">{CATEGORY_LABELS[category]}</span>
+                Category: <span className="text-stone-600 font-medium">{CATEGORY_LABELS[category]}</span>
               </p>
             )}
 
@@ -147,22 +136,17 @@ export default function Home() {
                         isBest ? 'border-stone-300 shadow-md' : 'border-stone-100 shadow-sm'
                       }`}
                     >
-                      {/* Header row */}
                       <div className="flex items-start gap-3 mb-3">
                         <div className="w-1 self-stretch rounded-full flex-shrink-0 mt-0.5" style={{ backgroundColor: card.color }} />
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 mb-0.5 flex-wrap">
                             <span className="font-semibold text-sm text-stone-800">{card.name}</span>
                             {isBest && (
-                              <span className="text-xs px-2 py-0.5 rounded-full text-white" style={{ backgroundColor: '#0d4f6e' }}>
-                                Best
-                              </span>
+                              <span className="text-xs px-2 py-0.5 rounded-full text-white" style={{ backgroundColor: '#0d4f6e' }}>Best</span>
                             )}
                           </div>
                           <p className="text-xs text-stone-400 leading-relaxed">{card.notes}</p>
-                          {card.cap_note && (
-                            <p className="text-xs text-amber-500 mt-0.5">{card.cap_note}</p>
-                          )}
+                          {card.cap_note && <p className="text-xs text-amber-500 mt-0.5">{card.cap_note}</p>}
                         </div>
                         <div className="text-right flex-shrink-0">
                           <div className="text-lg font-bold text-stone-800">{card.earn_rate} mpd</div>
@@ -170,19 +154,15 @@ export default function Home() {
                         </div>
                       </div>
 
-                      {/* Cap progress */}
                       {cap && (
                         <div className="mb-3">
                           <div className="h-1.5 bg-stone-100 rounded-full overflow-hidden">
                             <div className="h-full rounded-full" style={{ width: `${pct}%`, backgroundColor: '#0d4f6e' }} />
                           </div>
-                          <p className="text-xs text-stone-400 mt-1">
-                            ${spent.toFixed(0)} spent · ${remaining!.toFixed(0)} left
-                          </p>
+                          <p className="text-xs text-stone-400 mt-1">${spent.toFixed(0)} spent · ${remaining!.toFixed(0)} left</p>
                         </div>
                       )}
 
-                      {/* Log row */}
                       <div className="flex items-center gap-2">
                         <span className="text-xs text-stone-300 flex-shrink-0">Log:</span>
                         <span className="text-xs text-stone-400 flex-shrink-0">$</span>
