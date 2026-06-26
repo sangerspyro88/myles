@@ -150,7 +150,7 @@ export const MERCHANT_CATEGORY_MAP: Record<string, Category> = {
   zalora: 'shopping_online',
   'book depository': 'shopping_online',
   qoo10: 'shopping_online',
-  tiktok shop: 'shopping_online',
+  'tiktok shop': 'shopping_online',
 
   // In-store Shopping
   zara: 'shopping_instore',
