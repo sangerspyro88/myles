@@ -184,6 +184,65 @@ export const MERCHANT_CATEGORY_MAP: Record<string, Category> = {
   'overseas spend': 'foreign_currency',
   fcy: 'foreign_currency',
 
+  // ── More category aliases ──
+  'food & beverage': 'dining',
+  'f&b': 'dining',
+  hawkers: 'dining',
+  supper: 'dining',
+  brunch: 'dining',
+  lunch: 'dining',
+  dinner: 'dining',
+  takeaway: 'dining',
+  'take away': 'dining',
+  'fast food': 'dining',
+  'bubble tea': 'dining',
+  dessert: 'dining',
+  bakery: 'dining',
+  'online retail': 'shopping_online',
+  'fashion online': 'shopping_online',
+  'clothes online': 'shopping_online',
+  'fashion': 'shopping_instore',
+  clothes: 'shopping_instore',
+  apparel: 'shopping_instore',
+  shoes: 'shopping_instore',
+  bags: 'shopping_instore',
+  accessories: 'shopping_instore',
+  electronics: 'shopping_instore',
+  'department store': 'shopping_instore',
+  supermarkets: 'groceries',
+  'food shopping': 'groceries',
+  'daily necessities': 'groceries',
+  commute: 'transport',
+  cabbing: 'transport',
+  cab: 'transport',
+  rideshare: 'transport',
+  vacation: 'travel',
+  holiday: 'travel',
+  trip: 'travel',
+  'air ticket': 'travel',
+  'air tickets': 'travel',
+  resort: 'travel',
+  cruise: 'travel',
+  'theme park': 'entertainment',
+  'theme parks': 'entertainment',
+  karaoke: 'entertainment',
+  ktv: 'entertainment',
+  gym: 'entertainment',
+  fitness: 'entertainment',
+  'escape room': 'entertainment',
+  arcade: 'entertainment',
+  'board game': 'entertainment',
+  'overseas purchase': 'foreign_currency',
+  'foreign spend': 'foreign_currency',
+  japan: 'foreign_currency',
+  korea: 'foreign_currency',
+  europe: 'foreign_currency',
+  uk: 'foreign_currency',
+  australia: 'foreign_currency',
+  usa: 'foreign_currency',
+  malaysia: 'foreign_currency',
+  thailand: 'foreign_currency',
+
   // ── Dining ──
   grabfood: 'dining',
   'grab food': 'dining',
@@ -275,6 +334,35 @@ export const MERCHANT_CATEGORY_MAP: Record<string, Category> = {
   'aldo': 'shopping_instore',
   sephora: 'shopping_instore',
   'love bonito': 'shopping_instore',
+
+  // ── More dining ──
+  'long john': 'dining',
+  'fish & co': 'dining',
+  'fish and co': 'dining',
+  'carl\'s jr': 'dining',
+  'carls jr': 'dining',
+  'a&w': 'dining',
+  'jollibean': 'dining',
+  'mr bean': 'dining',
+  'gong cha': 'dining',
+  'koi': 'dining',
+  'liho': 'dining',
+  'playmade': 'dining',
+  'bober tea': 'dining',
+  'fun toast': 'dining',
+  'killiney': 'dining',
+  'bengawan': 'dining',
+  'prima deli': 'dining',
+  'polar puffs': 'dining',
+  'swensen\'s': 'dining',
+  swensens: 'dining',
+  'baskin robbins': 'dining',
+  'mcdonald': 'dining',
+  'mac': 'dining',
+  wendy: 'dining',
+  wendys: 'dining',
+  'popeyes': 'dining',
+  'texas chicken': 'dining',
 
   // ── Groceries ──
   fairprice: 'groceries',
@@ -381,7 +469,11 @@ export function recommendCards(
   if (category === 'other') {
     return [...walletCards].sort((a, b) => b.base_rate - a.base_rate)
   }
-  const matching = walletCards.filter(c => getCategories(c).includes(category))
-  const rest = walletCards.filter(c => !getCategories(c).includes(category))
+  const matching = walletCards
+    .filter(c => getCategories(c).includes(category))
+    .sort((a, b) => b.earn_rate - a.earn_rate) // highest mpd first
+  const rest = walletCards
+    .filter(c => !getCategories(c).includes(category))
+    .sort((a, b) => b.base_rate - a.base_rate)
   return [...matching, ...rest]
 }

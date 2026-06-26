@@ -20,6 +20,7 @@ export default function Home() {
   const [logAmount, setLogAmount] = useState<Record<string, string>>({})
   const [logged, setLogged] = useState<Record<string, boolean>>({})
   const [spendMap, setSpendMap] = useState<Record<string, number>>({})
+  const [isFallback, setIsFallback] = useState(false)
 
   useEffect(() => {
     const cards = getWalletCards()
@@ -44,14 +45,24 @@ export default function Home() {
     }
 
     const ranked = recommendCards(detected, walletCards, effectiveCategories)
-    const top3 = ranked.filter(c => {
+    const bonusCards = ranked.filter(c => {
       const effCats = effectiveCategories[c.id] ?? c.categories
       if (!effCats.includes(detected)) return false
       if (c.monthly_cap === 999999) return true
       return map[c.id] < c.monthly_cap
     }).slice(0, 3)
 
-    setResults(top3)
+    // If no card earns bonus on this category, fall back to best base-rate cards
+    if (bonusCards.length === 0) {
+      const fallback = [...walletCards]
+        .sort((a, b) => b.base_rate - a.base_rate)
+        .slice(0, 3)
+      setResults(fallback)
+      setIsFallback(true)
+    } else {
+      setResults(bonusCards)
+      setIsFallback(false)
+    }
     setSearched(true)
     setLogged({})
   }
@@ -120,14 +131,20 @@ export default function Home() {
               </div>
             ) : (
               <div className="space-y-3">
+                {isFallback && (
+                  <div className="bg-amber-50 border border-amber-100 rounded-2xl px-4 py-3 text-xs text-amber-700">
+                    No bonus miles for this category — most miles cards exclude supermarkets and utilities. Showing best base rates instead.
+                  </div>
+                )}
                 {results.map((card, i) => {
                   const spent = spendMap[card.id] || 0
                   const cap = card.monthly_cap === 999999 ? null : card.monthly_cap
                   const pct = cap ? Math.min((spent / cap) * 100, 100) : 0
                   const remaining = cap ? Math.max(cap - spent, 0) : null
-                  const isBest = i === 0
+                  const isBest = i === 0 && !isFallback
+                  const displayRate = isFallback ? card.base_rate : card.earn_rate
                   const amount = parseFloat(logAmount[card.id] || '')
-                  const miles = amount > 0 ? Math.floor(amount * card.earn_rate) : null
+                  const miles = amount > 0 ? Math.floor(amount * displayRate) : null
 
                   return (
                     <div
@@ -149,8 +166,9 @@ export default function Home() {
                           {card.cap_note && <p className="text-xs text-amber-500 mt-0.5">{card.cap_note}</p>}
                         </div>
                         <div className="text-right flex-shrink-0">
-                          <div className="text-lg font-bold text-stone-800">{card.earn_rate} mpd</div>
-                          {cap && <div className="text-xs text-stone-400">${cap}/mo cap</div>}
+                          <div className="text-lg font-bold text-stone-800">{displayRate} mpd</div>
+                          {cap && !isFallback && <div className="text-xs text-stone-400">${cap}/mo cap</div>}
+                          {isFallback && <div className="text-xs text-stone-400">base rate</div>}
                         </div>
                       </div>
 
