@@ -168,7 +168,7 @@ export const MERCHANT_CATEGORY_MAP: Record<string, Category> = {
   ntuc: 'groceries',
   'cold storage': 'groceries',
   giant: 'groceries',
-  sheng siong: 'groceries',
+  'sheng siong': 'groceries',
   redmart: 'groceries',
 
   // Transport
@@ -183,7 +183,7 @@ export const MERCHANT_CATEGORY_MAP: Record<string, Category> = {
   'ez-link': 'transport',
 
   // Travel
-  singapore airlines: 'travel',
+  'singapore airlines': 'travel',
   sia: 'travel',
   scoot: 'travel',
   airasia: 'travel',
