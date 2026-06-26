@@ -43,129 +43,136 @@ export default function Home() {
   }
 
   return (
-    <main className="min-h-screen bg-gray-950 text-white">
-      {/* Nav */}
-      <div className="border-b border-gray-800 px-6 py-4 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <span className="text-2xl font-bold tracking-tight">Myles</span>
-          <span className="text-gray-500 text-sm">Miles card optimizer</span>
-        </div>
-        <Link
-          href="/tracker"
-          className="text-sm text-gray-400 hover:text-white transition px-3 py-1.5 rounded-lg hover:bg-gray-800"
-        >
-          Spend tracker →
-        </Link>
-      </div>
+    <main className="min-h-screen" style={{ backgroundColor: '#fffcf5' }}>
 
-      <div className="max-w-2xl mx-auto px-4 py-10">
-        {/* Search */}
-        <div className="mb-8">
-          <h1 className="text-xl font-semibold mb-1">Which card should I use?</h1>
-          <p className="text-gray-400 text-sm mb-4">
+      <div className="max-w-2xl mx-auto px-4">
+        {/* Hero search block — centred when no results, top-aligned after */}
+        <div className={`flex flex-col items-center transition-all ${searched ? 'pt-12' : 'pt-[22vh]'}`}>
+
+          {/* Brand */}
+          <p className="text-sm font-medium tracking-widest text-stone-400 uppercase mb-3">Myles</p>
+
+          {/* Headline */}
+          <h1 className="text-2xl font-semibold text-stone-800 mb-1 text-center">Which card should I use?</h1>
+          <p className="text-sm text-stone-400 mb-7 text-center">
             Type a merchant or category and get the best card for maximum miles.
           </p>
-          <div className="flex gap-2">
+
+          {/* Search bar */}
+          <div className="w-full flex gap-2">
             <input
               type="text"
               value={merchant}
               onChange={e => setMerchant(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && handleSearch()}
               placeholder="e.g. Zara, Grab, Cold Storage..."
-              className="flex-1 bg-gray-900 border border-gray-700 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 transition"
+              className="flex-1 bg-white border border-stone-200 rounded-2xl px-5 py-3.5 text-stone-800 placeholder-stone-300 focus:outline-none focus:border-stone-400 shadow-sm transition text-sm"
             />
             <button
               onClick={handleSearch}
-              className="bg-blue-600 hover:bg-blue-500 transition rounded-xl px-5 py-3 font-medium"
+              className="rounded-2xl px-6 py-3.5 font-medium text-sm text-white shadow-sm transition hover:opacity-90"
+              style={{ backgroundColor: '#0d4f6e' }}
             >
               Find
             </button>
           </div>
 
-          {searched && category && (
-            <p className="mt-3 text-sm text-gray-400">
-              Detected category:{' '}
-              <span className="text-white font-medium">{CATEGORY_LABELS[category]}</span>
-            </p>
-          )}
+          {/* Spend tracker link */}
+          <Link
+            href="/tracker"
+            className="mt-4 text-sm text-stone-400 hover:text-stone-600 transition"
+          >
+            Spend tracker →
+          </Link>
         </div>
 
         {/* Results */}
-        <div className="space-y-3">
-          {results.map((card, i) => {
-            const isMatch = category && card.categories.includes(category)
-            const rate = isMatch ? card.earn_rate : card.base_rate
-            return (
-              <div
-                key={card.id}
-                className={`rounded-2xl border p-4 transition ${
-                  i === 0 && searched
-                    ? 'border-blue-500 bg-blue-950/40'
-                    : 'border-gray-800 bg-gray-900'
-                }`}
-              >
-                <div className="flex items-center gap-4">
-                  {/* Colour stripe */}
+        {searched && (
+          <div className="mt-8 pb-16">
+            {category && (
+              <p className="text-xs text-stone-400 mb-4">
+                Detected category:{' '}
+                <span className="text-stone-600 font-medium">{CATEGORY_LABELS[category]}</span>
+              </p>
+            )}
+
+            <div className="space-y-3">
+              {results.map((card, i) => {
+                const isMatch = category && card.categories.includes(category)
+                const rate = isMatch ? card.earn_rate : card.base_rate
+                const isBest = i === 0
+
+                return (
                   <div
-                    className="w-1 self-stretch rounded-full flex-shrink-0"
-                    style={{ backgroundColor: card.color }}
-                  />
-
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-0.5">
-                      <span className="font-semibold text-sm">{card.name}</span>
-                      {i === 0 && searched && (
-                        <span className="text-xs bg-blue-600 px-2 py-0.5 rounded-full">Best</span>
-                      )}
-                    </div>
-                    <p className="text-xs text-gray-400 truncate">{card.notes}</p>
-                  </div>
-
-                  <div className="text-right flex-shrink-0">
-                    <div className="text-lg font-bold">{rate} mpd</div>
-                    <div className="text-xs text-gray-400">
-                      {isMatch
-                        ? `Cap: $${card.monthly_cap === 999999 ? '∞' : card.monthly_cap}/mo`
-                        : 'base rate'}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Log spend row — only show after a search */}
-                {searched && (
-                  <div className="mt-3 flex gap-2 items-center">
-                    <span className="text-xs text-gray-500">Log spend:</span>
-                    <div className="flex gap-1.5 flex-1">
-                      <span className="text-xs text-gray-400 self-center">$</span>
-                      <input
-                        type="number"
-                        min="0"
-                        step="0.01"
-                        placeholder="0.00"
-                        value={logAmount[card.id] || ''}
-                        onChange={e =>
-                          setLogAmount(prev => ({ ...prev, [card.id]: e.target.value }))
-                        }
-                        onKeyDown={e => e.key === 'Enter' && handleLog(card.id)}
-                        className="w-24 bg-gray-800 border border-gray-700 rounded-lg px-2 py-1 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-blue-500"
+                    key={card.id}
+                    className={`rounded-2xl border p-4 transition bg-white ${
+                      isBest ? 'border-stone-300 shadow-md' : 'border-stone-100 shadow-sm'
+                    }`}
+                  >
+                    <div className="flex items-center gap-4">
+                      <div
+                        className="w-1 self-stretch rounded-full flex-shrink-0"
+                        style={{ backgroundColor: card.color }}
                       />
-                      {logged[card.id] ? (
-                        <span className="text-xs text-green-400 self-center">✓ Logged</span>
-                      ) : (
-                        <button
-                          onClick={() => handleLog(card.id)}
-                          className="text-xs bg-gray-700 hover:bg-gray-600 transition rounded-lg px-3 py-1"
-                        >
-                          Log
-                        </button>
-                      )}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-0.5">
+                          <span className="font-semibold text-sm text-stone-800">{card.name}</span>
+                          {isBest && (
+                            <span
+                              className="text-xs px-2 py-0.5 rounded-full text-white"
+                              style={{ backgroundColor: '#0d4f6e' }}
+                            >
+                              Best
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-xs text-stone-400 truncate">{card.notes}</p>
+                      </div>
+                      <div className="text-right flex-shrink-0">
+                        <div className="text-lg font-bold text-stone-800">{rate} mpd</div>
+                        <div className="text-xs text-stone-400">
+                          {isMatch
+                            ? `Cap: $${card.monthly_cap === 999999 ? '∞' : card.monthly_cap}/mo`
+                            : 'base rate'}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Log spend */}
+                    <div className="mt-3 flex gap-2 items-center">
+                      <span className="text-xs text-stone-300">Log spend:</span>
+                      <div className="flex gap-1.5 flex-1 items-center">
+                        <span className="text-xs text-stone-400">$</span>
+                        <input
+                          type="number"
+                          min="0"
+                          step="0.01"
+                          placeholder="0.00"
+                          value={logAmount[card.id] || ''}
+                          onChange={e =>
+                            setLogAmount(prev => ({ ...prev, [card.id]: e.target.value }))
+                          }
+                          onKeyDown={e => e.key === 'Enter' && handleLog(card.id)}
+                          className="w-24 bg-stone-50 border border-stone-200 rounded-lg px-2 py-1 text-sm text-stone-800 placeholder-stone-300 focus:outline-none focus:border-stone-400"
+                        />
+                        {logged[card.id] ? (
+                          <span className="text-xs text-emerald-500">✓ Logged</span>
+                        ) : (
+                          <button
+                            onClick={() => handleLog(card.id)}
+                            className="text-xs bg-stone-100 hover:bg-stone-200 transition rounded-lg px-3 py-1 text-stone-600"
+                          >
+                            Log
+                          </button>
+                        )}
+                      </div>
                     </div>
                   </div>
-                )}
-              </div>
-            )
-          })}
-        </div>
+                )
+              })}
+            </div>
+          </div>
+        )}
       </div>
     </main>
   )
