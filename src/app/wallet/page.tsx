@@ -47,8 +47,8 @@ export default function Wallet() {
         </Link>
       </div>
 
-      <div className="max-w-2xl mx-auto px-4 py-10">
-        <h2 className="text-lg font-semibold text-stone-800 mb-1">My Wallet</h2>
+      <div className="w-full max-w-lg mx-auto px-4 py-8">
+        <h2 className="text-lg font-semibold text-stone-800 mb-1">My Cards</h2>
         <p className="text-stone-400 text-sm mb-6">
           Select the cards you own. For cards with a chosen category, set your active selection.
         </p>

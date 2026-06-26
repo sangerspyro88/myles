@@ -38,7 +38,6 @@ export default function Home() {
     for (const card of walletCards) map[card.id] = getMonthSpend(card.id)
     setSpendMap(map)
 
-    // Build effective categories map for flex cards
     const effectiveCategories: Record<string, Category[]> = {}
     for (const card of walletCards) {
       effectiveCategories[card.id] = getEffectiveCategories(card)
@@ -73,57 +72,62 @@ export default function Home() {
   }
 
   return (
-    <main className="min-h-screen" style={{ backgroundColor: '#fffcf5' }}>
-      <div className="max-w-2xl mx-auto px-4">
-        <div className={`flex flex-col items-center transition-all ${searched ? 'pt-12' : 'pt-[22vh]'}`}>
+    <main className="min-h-screen w-full" style={{ backgroundColor: '#fffcf5' }}>
+      <div className="w-full max-w-lg mx-auto px-4">
 
-          <p className="text-sm font-medium tracking-widest text-stone-400 uppercase mb-3">Myles</p>
-          <h1 className="text-2xl font-semibold text-stone-800 mb-1 text-center">Which card should I use?</h1>
-          <p className="text-sm text-stone-400 mb-7 text-center">
-            Type a merchant or category and get the best card for maximum miles.
+        {/* Hero block — centred, slides up after search */}
+        <div className={`flex flex-col items-center text-center ${searched ? 'pt-10' : 'pt-[28vh]'}`}>
+          <p className="text-xs font-semibold tracking-widest text-stone-400 uppercase mb-3">Myles</p>
+          <h1 className="text-xl font-semibold text-stone-800 mb-1">Which card should I use?</h1>
+          <p className="text-sm text-stone-400 mb-6">
+            Type a merchant or category for the best miles card.
           </p>
 
+          {/* Search bar */}
           <div className="w-full flex gap-2">
             <input
               type="text"
+              inputMode="search"
               value={merchant}
               onChange={e => setMerchant(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && handleSearch()}
-              placeholder="e.g. Zara, Grab, Cold Storage..."
-              className="flex-1 bg-white border border-stone-200 rounded-2xl px-5 py-3.5 text-stone-800 placeholder-stone-300 focus:outline-none focus:border-stone-400 shadow-sm transition text-sm"
+              placeholder="e.g. Shopee, dining, travel…"
+              className="flex-1 bg-white border border-stone-200 rounded-2xl px-4 py-3.5 text-stone-800 placeholder-stone-300 focus:outline-none focus:border-stone-400 shadow-sm text-sm"
             />
             <button
               onClick={handleSearch}
-              className="rounded-2xl px-6 py-3.5 font-medium text-sm text-white shadow-sm transition hover:opacity-90"
+              className="rounded-2xl px-5 py-3.5 font-medium text-sm text-white shadow-sm active:opacity-80"
               style={{ backgroundColor: '#0d4f6e' }}
             >
               Find
             </button>
           </div>
 
-          <div className="mt-4 flex gap-5">
-            <Link href="/tracker" className="text-sm text-stone-400 hover:text-stone-600 transition">
-              Spend tracker →
+          {/* Nav links */}
+          <div className="mt-4 flex gap-6 justify-center">
+            <Link href="/tracker" className="text-sm text-stone-400 active:text-stone-600">
+              Spend Summary →
             </Link>
-            <Link href="/wallet" className="text-sm text-stone-400 hover:text-stone-600 transition">
-              My wallet →
+            <Link href="/wallet" className="text-sm text-stone-400 active:text-stone-600">
+              My Cards →
             </Link>
           </div>
         </div>
 
+        {/* Results */}
         {searched && (
-          <div className="mt-8 pb-16">
+          <div className="mt-6 pb-12">
             {category && (
-              <p className="text-xs text-stone-400 mb-4">
-                Detected category:{' '}
+              <p className="text-xs text-stone-400 mb-3 text-center">
+                Category:{' '}
                 <span className="text-stone-600 font-medium">{CATEGORY_LABELS[category]}</span>
               </p>
             )}
 
             {results.length === 0 ? (
               <div className="bg-white border border-stone-100 rounded-2xl p-6 text-center text-stone-400 text-sm shadow-sm">
-                No eligible cards available — all capped, or none in your wallet cover this category.{' '}
-                <Link href="/wallet" className="underline hover:text-stone-600">Manage wallet →</Link>
+                No eligible cards — all capped or none cover this category.{' '}
+                <Link href="/wallet" className="underline">Manage cards →</Link>
               </div>
             ) : (
               <div className="space-y-3">
@@ -139,14 +143,15 @@ export default function Home() {
                   return (
                     <div
                       key={card.id}
-                      className={`rounded-2xl border p-4 bg-white transition ${
+                      className={`rounded-2xl border p-4 bg-white ${
                         isBest ? 'border-stone-300 shadow-md' : 'border-stone-100 shadow-sm'
                       }`}
                     >
-                      <div className="flex items-center gap-4 mb-3">
-                        <div className="w-1 self-stretch rounded-full flex-shrink-0" style={{ backgroundColor: card.color }} />
+                      {/* Header row */}
+                      <div className="flex items-start gap-3 mb-3">
+                        <div className="w-1 self-stretch rounded-full flex-shrink-0 mt-0.5" style={{ backgroundColor: card.color }} />
                         <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-0.5">
+                          <div className="flex items-center gap-2 mb-0.5 flex-wrap">
                             <span className="font-semibold text-sm text-stone-800">{card.name}</span>
                             {isBest && (
                               <span className="text-xs px-2 py-0.5 rounded-full text-white" style={{ backgroundColor: '#0d4f6e' }}>
@@ -154,56 +159,59 @@ export default function Home() {
                               </span>
                             )}
                           </div>
-                          <p className="text-xs text-stone-400">{card.notes}</p>
+                          <p className="text-xs text-stone-400 leading-relaxed">{card.notes}</p>
                           {card.cap_note && (
                             <p className="text-xs text-amber-500 mt-0.5">{card.cap_note}</p>
                           )}
                         </div>
                         <div className="text-right flex-shrink-0">
                           <div className="text-lg font-bold text-stone-800">{card.earn_rate} mpd</div>
-                          {cap && <div className="text-xs text-stone-400">Cap: ${cap}/mo</div>}
+                          {cap && <div className="text-xs text-stone-400">${cap}/mo cap</div>}
                         </div>
                       </div>
 
+                      {/* Cap progress */}
                       {cap && (
                         <div className="mb-3">
                           <div className="h-1.5 bg-stone-100 rounded-full overflow-hidden">
-                            <div className="h-full rounded-full transition-all" style={{ width: `${pct}%`, backgroundColor: '#0d4f6e' }} />
+                            <div className="h-full rounded-full" style={{ width: `${pct}%`, backgroundColor: '#0d4f6e' }} />
                           </div>
                           <p className="text-xs text-stone-400 mt-1">
-                            ${spent.toFixed(0)} spent · ${remaining!.toFixed(0)} remaining
+                            ${spent.toFixed(0)} spent · ${remaining!.toFixed(0)} left
                           </p>
                         </div>
                       )}
 
-                      {/* Log spend + miles calc */}
-                      <div className="flex gap-2 items-center">
-                        <span className="text-xs text-stone-300">Log spend:</span>
-                        <div className="flex gap-1.5 flex-1 items-center">
-                          <span className="text-xs text-stone-400">$</span>
-                          <input
-                            type="number" min="0" step="0.01" placeholder="0.00"
-                            value={logAmount[card.id] || ''}
-                            onChange={e => setLogAmount(prev => ({ ...prev, [card.id]: e.target.value }))}
-                            onKeyDown={e => e.key === 'Enter' && handleLog(card.id)}
-                            className="w-24 bg-stone-50 border border-stone-200 rounded-lg px-2 py-1 text-sm text-stone-800 placeholder-stone-300 focus:outline-none focus:border-stone-400"
-                          />
-                          {miles !== null && (
-                            <span className="text-xs font-medium" style={{ color: '#0d4f6e' }}>
-                              = {miles.toLocaleString()} miles
-                            </span>
-                          )}
-                          {logged[card.id] ? (
-                            <span className="text-xs text-emerald-500 ml-1">✓ Logged</span>
-                          ) : (
-                            <button
-                              onClick={() => handleLog(card.id)}
-                              className="text-xs bg-stone-100 hover:bg-stone-200 transition rounded-lg px-3 py-1 text-stone-600 ml-auto"
-                            >
-                              Log
-                            </button>
-                          )}
-                        </div>
+                      {/* Log row */}
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs text-stone-300 flex-shrink-0">Log:</span>
+                        <span className="text-xs text-stone-400 flex-shrink-0">$</span>
+                        <input
+                          type="number"
+                          inputMode="decimal"
+                          min="0"
+                          step="0.01"
+                          placeholder="0.00"
+                          value={logAmount[card.id] || ''}
+                          onChange={e => setLogAmount(prev => ({ ...prev, [card.id]: e.target.value }))}
+                          onKeyDown={e => e.key === 'Enter' && handleLog(card.id)}
+                          className="w-20 bg-stone-50 border border-stone-200 rounded-lg px-2 py-1.5 text-sm text-stone-800 placeholder-stone-300 focus:outline-none focus:border-stone-400"
+                        />
+                        {miles !== null && (
+                          <span className="text-xs font-medium flex-shrink-0" style={{ color: '#0d4f6e' }}>
+                            = {miles.toLocaleString()} miles
+                          </span>
+                        )}
+                        {logged[card.id] ? (
+                          <span className="text-xs text-emerald-500 ml-auto flex-shrink-0">✓ Logged</span>
+                        ) : (
+                          <button
+                            onClick={() => handleLog(card.id)}
+                            className="ml-auto text-xs bg-stone-100 active:bg-stone-200 rounded-lg px-3 py-1.5 text-stone-600 flex-shrink-0"
+                          >
+                            Log
+                          </button>
+                        )}
                       </div>
                     </div>
                   )

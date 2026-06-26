@@ -73,7 +73,7 @@ export default function Tracker() {
         </div>
         <div className="flex gap-3">
           <Link href="/wallet" className="text-sm text-stone-400 hover:text-stone-700 transition px-3 py-1.5 rounded-lg hover:bg-stone-50">
-            My wallet
+            My Cards
           </Link>
           <Link href="/" className="text-sm text-stone-400 hover:text-stone-700 transition px-3 py-1.5 rounded-lg hover:bg-stone-50">
             ← Card finder
@@ -81,8 +81,8 @@ export default function Tracker() {
         </div>
       </div>
 
-      <div className="max-w-2xl mx-auto px-4 py-10">
-        <h2 className="text-lg font-semibold text-stone-800 mb-1">Cap usage</h2>
+      <div className="w-full max-w-lg mx-auto px-4 py-8">
+        <h2 className="text-lg font-semibold text-stone-800 mb-1">Spend Summary</h2>
         <p className="text-stone-400 text-sm mb-5">
           Spend since your statement date. Tap the reset label to change it.
         </p>

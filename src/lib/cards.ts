@@ -14,12 +14,12 @@ export interface Card {
   name: string
   bank: string
   color: string
-  earn_rate: number // mpd on bonus categories
-  base_rate: number // mpd on everything else
-  monthly_cap: number // SGD spending cap for bonus rate
-  cap_note?: string  // extra detail about how the cap works
+  earn_rate: number
+  base_rate: number
+  monthly_cap: number
+  cap_note?: string
   categories: Category[]
-  flex_category?: boolean // user picks one active category (e.g. UOB Lady's)
+  flex_category?: boolean
   notes: string
 }
 
@@ -32,7 +32,7 @@ export const MY_CARDS: Card[] = [
     earn_rate: 4,
     base_rate: 0.4,
     monthly_cap: 600,
-    cap_note: '$600 cap applies per category (online & contactless are tracked separately)',
+    cap_note: '$600 cap per category — online & contactless tracked separately',
     categories: ['shopping_online', 'shopping_instore'],
     notes: '4 mpd on online & mobile contactless. $600 cap per category, per month.',
   },
@@ -45,7 +45,7 @@ export const MY_CARDS: Card[] = [
     base_rate: 0.4,
     monthly_cap: 1000,
     categories: ['shopping_online'],
-    notes: '4 mpd on all online spend. $1,000 cap/month. Exclusion-based MCC.',
+    notes: '4 mpd on all online spend. $1,000 cap/month.',
   },
   {
     id: 'uob_ladys',
@@ -68,7 +68,7 @@ export const MY_CARDS: Card[] = [
     base_rate: 0.4,
     monthly_cap: 1000,
     categories: ['shopping_online', 'shopping_instore'],
-    notes: '4 mpd on shopping MCCs (online & in-store). $1,000 cap/month. Excludes travel agencies.',
+    notes: '4 mpd on shopping MCCs (online & in-store). $1,000 cap/month.',
   },
   {
     id: 'sc_rewards_plus',
@@ -79,7 +79,7 @@ export const MY_CARDS: Card[] = [
     base_rate: 0.4,
     monthly_cap: 417,
     categories: ['dining', 'foreign_currency'],
-    notes: 'Capped at 20,000 pts/year (~$417/month). Note: card may be discontinued — verify with SC.',
+    notes: 'Capped at 20,000 pts/year (~$417/month). Verify card is still active with SC.',
   },
   {
     id: 'sc_visa_infinite',
@@ -101,7 +101,7 @@ export const MY_CARDS: Card[] = [
     base_rate: 0.4,
     monthly_cap: 1000,
     categories: ['shopping_online', 'shopping_instore'],
-    notes: '6 mpd promo at Shopee, Lazada, Watsons, TikTok Shop, Taobao. 4 mpd on other shopping MCCs. $1,000 cap/month.',
+    notes: '6 mpd at Shopee, Lazada, Watsons, TikTok Shop, Taobao. 4 mpd other shopping MCCs. $1,000 cap/month.',
   },
   {
     id: 'maybank_xl',
@@ -112,7 +112,7 @@ export const MY_CARDS: Card[] = [
     base_rate: 0.4,
     monthly_cap: 1000,
     categories: ['dining', 'shopping_instore', 'shopping_online', 'travel', 'entertainment', 'foreign_currency'],
-    notes: '4 mpd on Dine, Shop, Travel, Play + FCY. $1,000 cap/month (10,000 TREATS pts). Age 21–39 only.',
+    notes: '4 mpd on Dine, Shop, Travel, Play + FCY. $1,000 cap/month. Age 21–39 only.',
   },
 ]
 
@@ -129,34 +129,125 @@ export const CATEGORY_LABELS: Record<Category, string> = {
 }
 
 export const MERCHANT_CATEGORY_MAP: Record<string, Category> = {
-  // Dining
-  'grab food': 'dining',
+  // ── Category keywords (let users type the category itself) ──
+  dining: 'dining',
+  food: 'dining',
+  restaurant: 'dining',
+  restaurants: 'dining',
+  cafe: 'dining',
+  cafes: 'dining',
+  'food delivery': 'dining',
+  'online shopping': 'shopping_online',
+  'online shop': 'shopping_online',
+  'online purchase': 'shopping_online',
+  'online order': 'shopping_online',
+  ecommerce: 'shopping_online',
+  'e-commerce': 'shopping_online',
+  shopping: 'shopping_instore',
+  retail: 'shopping_instore',
+  'in-store': 'shopping_instore',
+  'instore': 'shopping_instore',
+  groceries: 'groceries',
+  grocery: 'groceries',
+  supermarket: 'groceries',
+  'super market': 'groceries',
+  travel: 'travel',
+  flights: 'travel',
+  flight: 'travel',
+  airline: 'travel',
+  airlines: 'travel',
+  hotel: 'travel',
+  hotels: 'travel',
+  accommodation: 'travel',
+  transport: 'transport',
+  'ride hailing': 'transport',
+  'ride-hailing': 'transport',
+  taxi: 'transport',
+  transport: 'transport',
+  entertainment: 'entertainment',
+  movies: 'entertainment',
+  movie: 'entertainment',
+  'movie tickets': 'entertainment',
+  cinema: 'entertainment',
+  cinemas: 'entertainment',
+  streaming: 'entertainment',
+  'online tickets': 'entertainment',
+  tickets: 'entertainment',
+  'concert tickets': 'entertainment',
+  concert: 'entertainment',
+  events: 'entertainment',
+  event: 'entertainment',
+  gaming: 'entertainment',
+  games: 'entertainment',
+  'foreign currency': 'foreign_currency',
+  forex: 'foreign_currency',
+  overseas: 'foreign_currency',
+  'overseas spend': 'foreign_currency',
+  fcy: 'foreign_currency',
+
+  // ── Dining ──
   grabfood: 'dining',
+  'grab food': 'dining',
   foodpanda: 'dining',
+  deliveroo: 'dining',
   mcdonalds: 'dining',
   "mcdonald's": 'dining',
   starbucks: 'dining',
-  'ya kun': 'dining',
-  kopitiam: 'dining',
-  hawker: 'dining',
-  restaurant: 'dining',
-  cafe: 'dining',
   kfc: 'dining',
   'burger king': 'dining',
   subway: 'dining',
-  deliveroo: 'dining',
+  'ya kun': 'dining',
+  yakun: 'dining',
+  kopitiam: 'dining',
+  hawker: 'dining',
+  'hawker centre': 'dining',
+  'toast box': 'dining',
+  toastbox: 'dining',
+  'old chang kee': 'dining',
+  breadtalk: 'dining',
+  'bengawan solo': 'dining',
+  'crystal jade': 'dining',
+  'din tai fung': 'dining',
+  'tim ho wan': 'dining',
+  'shake shack': 'dining',
+  'the coffee bean': 'dining',
+  'coffee bean': 'dining',
+  'gloria jeans': 'dining',
+  'dome cafe': 'dining',
+  dome: 'dining',
+  'pastamania': 'dining',
+  pizza: 'dining',
+  'pizza hut': 'dining',
+  'dominos': 'dining',
+  sushi: 'dining',
+  'sushi tei': 'dining',
+  sakura: 'dining',
+  ichiban: 'dining',
+  'nando\'s': 'dining',
+  nandos: 'dining',
+  poulet: 'dining',
+  'maki-san': 'dining',
 
-  // Online Shopping
+  // ── Online Shopping ──
   shopee: 'shopping_online',
   lazada: 'shopping_online',
   amazon: 'shopping_online',
   taobao: 'shopping_online',
   zalora: 'shopping_online',
-  'book depository': 'shopping_online',
   qoo10: 'shopping_online',
   'tiktok shop': 'shopping_online',
+  'book depository': 'shopping_online',
+  carousell: 'shopping_online',
+  reebonz: 'shopping_online',
+  farfetch: 'shopping_online',
+  ssense: 'shopping_online',
+  asos: 'shopping_online',
+  shein: 'shopping_online',
+  aliexpress: 'shopping_online',
+  'apple store': 'shopping_online',
+  apple: 'shopping_online',
 
-  // In-store Shopping
+  // ── In-store Shopping ──
   zara: 'shopping_instore',
   uniqlo: 'shopping_instore',
   'h&m': 'shopping_instore',
@@ -166,16 +257,42 @@ export const MERCHANT_CATEGORY_MAP: Record<string, Category> = {
   ikea: 'shopping_instore',
   courts: 'shopping_instore',
   harvey: 'shopping_instore',
+  'harvey norman': 'shopping_instore',
+  'best denki': 'shopping_instore',
+  challenger: 'shopping_instore',
+  'robinsons': 'shopping_instore',
+  tangs: 'shopping_instore',
+  isetan: 'shopping_instore',
+  marks: 'shopping_instore',
+  'marks & spencer': 'shopping_instore',
+  gap: 'shopping_instore',
+  levi: 'shopping_instore',
+  levis: 'shopping_instore',
+  nike: 'shopping_instore',
+  adidas: 'shopping_instore',
+  puma: 'shopping_instore',
+  'cotton on': 'shopping_instore',
+  'pedro': 'shopping_instore',
+  'aldo': 'shopping_instore',
+  sephora: 'shopping_instore',
+  'love bonito': 'shopping_instore',
 
-  // Groceries
+  // ── Groceries ──
   fairprice: 'groceries',
   ntuc: 'groceries',
   'cold storage': 'groceries',
+  coldstorage: 'groceries',
   giant: 'groceries',
   'sheng siong': 'groceries',
+  shengsiong: 'groceries',
   redmart: 'groceries',
+  'jason\'s': 'groceries',
+  jasons: 'groceries',
+  marketplace: 'groceries',
+  'don don donki': 'groceries',
+  donki: 'groceries',
 
-  // Transport
+  // ── Transport ──
   grab: 'transport',
   gojek: 'transport',
   tada: 'transport',
@@ -185,8 +302,12 @@ export const MERCHANT_CATEGORY_MAP: Record<string, Category> = {
   mrt: 'transport',
   bus: 'transport',
   'ez-link': 'transport',
+  ezlink: 'transport',
+  'transit link': 'transport',
+  ryde: 'transport',
+  mvl: 'transport',
 
-  // Travel
+  // ── Travel ──
   'singapore airlines': 'travel',
   sia: 'travel',
   scoot: 'travel',
@@ -196,35 +317,63 @@ export const MERCHANT_CATEGORY_MAP: Record<string, Category> = {
   klook: 'travel',
   expedia: 'travel',
   changi: 'travel',
-  hotel: 'travel',
+  'changi airport': 'travel',
+  airbnb: 'travel',
+  'trip.com': 'travel',
+  tripcom: 'travel',
+  jetstar: 'travel',
+  'malaysia airlines': 'travel',
+  'cathay pacific': 'travel',
+  emirates: 'travel',
+  'singapore airport': 'travel',
+  'duty free': 'travel',
 
-  // Entertainment
+  // ── Entertainment ──
   netflix: 'entertainment',
   spotify: 'entertainment',
   disney: 'entertainment',
+  'disney+': 'entertainment',
   'golden village': 'entertainment',
   gv: 'entertainment',
   cathay: 'entertainment',
   shaw: 'entertainment',
   steam: 'entertainment',
+  'apple tv': 'entertainment',
+  'youtube premium': 'entertainment',
+  youtube: 'entertainment',
+  'hbo': 'entertainment',
+  'max': 'entertainment',
+  'primevideo': 'entertainment',
+  'amazon prime': 'entertainment',
+  'nintendo': 'entertainment',
+  playstation: 'entertainment',
+  xbox: 'entertainment',
+  'sistic': 'entertainment',
+  sistic: 'entertainment',
+  ticketmaster: 'entertainment',
+  'sport singapore': 'entertainment',
 
-  // Foreign Currency
-  overseas: 'foreign_currency',
-  'foreign currency': 'foreign_currency',
+  // ── Foreign Currency ──
   usd: 'foreign_currency',
   eur: 'foreign_currency',
   gbp: 'foreign_currency',
+  jpy: 'foreign_currency',
+  aud: 'foreign_currency',
+  krw: 'foreign_currency',
+  thb: 'foreign_currency',
+  hkd: 'foreign_currency',
 }
 
 export function detectCategory(merchant: string): Category {
   const lower = merchant.toLowerCase().trim()
+  // Try exact match first, then substring
+  if (MERCHANT_CATEGORY_MAP[lower]) return MERCHANT_CATEGORY_MAP[lower]
   for (const [keyword, category] of Object.entries(MERCHANT_CATEGORY_MAP)) {
     if (lower.includes(keyword)) return category
   }
   return 'other'
 }
 
-// effectiveCategories overrides per-card categories (used for flex_category cards)
 export function recommendCards(
   category: Category,
   walletCards: Card[],
