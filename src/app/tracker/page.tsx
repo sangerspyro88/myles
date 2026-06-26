@@ -14,6 +14,7 @@ import {
   resetAllSpend,
   type SpendEntry,
 } from '@/lib/spend'
+import { getWalletIds } from '@/lib/wallet'
 
 export default function Tracker() {
   const [entries, setEntries] = useState<SpendEntry[]>([])
@@ -22,8 +23,11 @@ export default function Tracker() {
   const [editingReset, setEditingReset] = useState<string | null>(null)
   const [resetInput, setResetInput] = useState('')
   const [confirmReset, setConfirmReset] = useState<string | null>(null) // cardId or 'all'
+  const [walletIds, setWalletIds] = useState<Set<string>>(new Set())
 
   function refresh() {
+    const ids = new Set(getWalletIds())
+    setWalletIds(ids)
     setEntries(getEntries().slice().reverse())
     const spend: Record<string, number> = {}
     for (const card of MY_CARDS) spend[card.id] = getMonthSpend(card.id)
@@ -67,9 +71,14 @@ export default function Tracker() {
           <span className="text-xl font-bold tracking-tight text-stone-800">Myles</span>
           <span className="text-stone-300 text-sm">Miles card optimizer</span>
         </div>
-        <Link href="/" className="text-sm text-stone-400 hover:text-stone-700 transition px-3 py-1.5 rounded-lg hover:bg-stone-50">
-          ← Card finder
-        </Link>
+        <div className="flex gap-3">
+          <Link href="/wallet" className="text-sm text-stone-400 hover:text-stone-700 transition px-3 py-1.5 rounded-lg hover:bg-stone-50">
+            My wallet
+          </Link>
+          <Link href="/" className="text-sm text-stone-400 hover:text-stone-700 transition px-3 py-1.5 rounded-lg hover:bg-stone-50">
+            ← Card finder
+          </Link>
+        </div>
       </div>
 
       <div className="max-w-2xl mx-auto px-4 py-10">
@@ -79,7 +88,7 @@ export default function Tracker() {
         </p>
 
         <div className="space-y-3 mb-10">
-          {MY_CARDS.map(card => {
+          {MY_CARDS.filter(c => walletIds.has(c.id)).map(card => {
             const spent = monthSpend[card.id] || 0
             const cap = card.monthly_cap === 999999 ? null : card.monthly_cap
             const pct = cap ? Math.min((spent / cap) * 100, 100) : 0

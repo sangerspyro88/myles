@@ -17,6 +17,7 @@ export interface Card {
   earn_rate: number // mpd on bonus categories
   base_rate: number // mpd on everything else
   monthly_cap: number // SGD spending cap for bonus rate
+  cap_note?: string  // extra detail about how the cap works
   categories: Category[]
   notes: string
 }
@@ -24,14 +25,15 @@ export interface Card {
 export const MY_CARDS: Card[] = [
   {
     id: 'uob_preferred',
-    name: 'UOB Preferred Platinum',
+    name: 'UOB Preferred Visa',
     bank: 'UOB',
     color: '#003087',
     earn_rate: 4,
     base_rate: 0.4,
-    monthly_cap: 1200,
+    monthly_cap: 600,
+    cap_note: '$600 cap applies per category (online & contactless are tracked separately)',
     categories: ['shopping_online', 'shopping_instore'],
-    notes: '$600 cap per category (online & mobile contactless). Resets monthly.',
+    notes: '4 mpd on online & mobile contactless. $600 cap per category, per month.',
   },
   {
     id: 'dbs_womens',
@@ -42,7 +44,7 @@ export const MY_CARDS: Card[] = [
     base_rate: 0.4,
     monthly_cap: 1000,
     categories: ['shopping_online'],
-    notes: '4 mpd on all online spend. Exclusion-based MCC. Resets calendar month.',
+    notes: '4 mpd on all online spend. $1,000 cap/month. Exclusion-based MCC.',
   },
   {
     id: 'uob_ladys',
@@ -52,8 +54,8 @@ export const MY_CARDS: Card[] = [
     earn_rate: 4,
     base_rate: 0.4,
     monthly_cap: 1000,
-    categories: ['dining', 'shopping_instore', 'entertainment', 'travel'],
-    notes: 'Choose 1 bonus category each quarter. Up to 10 mpd with Lady\'s Savings Account.',
+    categories: ['dining', 'shopping_instore', 'shopping_online', 'entertainment', 'travel', 'transport', 'foreign_currency'],
+    notes: 'Choose 1 bonus category per quarter. $1,000 cap/month on chosen category.',
   },
   {
     id: 'citi_rewards',
@@ -63,8 +65,8 @@ export const MY_CARDS: Card[] = [
     earn_rate: 4,
     base_rate: 0.4,
     monthly_cap: 1000,
-    categories: ['shopping_online', 'shopping_instore', 'dining', 'transport'],
-    notes: '4 mpd on shopping, food delivery, ride-hailing. Excludes travel agencies.',
+    categories: ['shopping_online', 'shopping_instore'],
+    notes: '4 mpd on shopping MCCs (online & in-store). $1,000 cap/month. Excludes travel agencies.',
   },
   {
     id: 'sc_rewards_plus',
@@ -75,7 +77,7 @@ export const MY_CARDS: Card[] = [
     base_rate: 0.4,
     monthly_cap: 417,
     categories: ['dining', 'foreign_currency'],
-    notes: 'Capped at 20,000 pts/year (~$417/month equivalent). Best for dining & FCY.',
+    notes: 'Capped at 20,000 pts/year (~$417/month). Note: card may be discontinued — verify with SC.',
   },
   {
     id: 'sc_visa_infinite',
@@ -86,18 +88,18 @@ export const MY_CARDS: Card[] = [
     base_rate: 1.4,
     monthly_cap: 999999,
     categories: ['foreign_currency', 'travel'],
-    notes: '1.4 mpd local / 3 mpd overseas. No cap. Requires min $2,000/month spend to unlock rates.',
+    notes: '1.4 mpd local / 3 mpd overseas. No cap. Min $2,000/month spend to unlock full rates.',
   },
   {
     id: 'ocbc_rewards',
     name: 'OCBC Rewards',
     bank: 'OCBC',
     color: '#D71920',
-    earn_rate: 4,
+    earn_rate: 6,
     base_rate: 0.4,
     monthly_cap: 1000,
     categories: ['shopping_online', 'shopping_instore'],
-    notes: '4 mpd on shopping MCCs. 6 mpd promo at Shopee/Watsons/Lazada until June 2026.',
+    notes: '6 mpd promo at Shopee, Lazada, Watsons, TikTok Shop, Taobao. 4 mpd on other shopping MCCs. $1,000 cap/month.',
   },
   {
     id: 'maybank_xl',
@@ -108,7 +110,7 @@ export const MY_CARDS: Card[] = [
     base_rate: 0.4,
     monthly_cap: 1000,
     categories: ['dining', 'shopping_instore', 'shopping_online', 'travel', 'entertainment', 'foreign_currency'],
-    notes: '4 mpd on Dine, Shop, Travel, Play + FCY. Cap: 10,000 TREATS pts/month.',
+    notes: '4 mpd on Dine, Shop, Travel, Play + FCY. $1,000 cap/month (10,000 TREATS pts). Age 21–39 only.',
   },
 ]
 
@@ -220,11 +222,11 @@ export function detectCategory(merchant: string): Category {
   return 'other'
 }
 
-export function recommendCards(category: Category): Card[] {
+export function recommendCards(category: Category, walletCards: Card[]): Card[] {
   if (category === 'other') {
-    return [...MY_CARDS].sort((a, b) => b.base_rate - a.base_rate)
+    return [...walletCards].sort((a, b) => b.base_rate - a.base_rate)
   }
-  const matching = MY_CARDS.filter(c => c.categories.includes(category))
-  const rest = MY_CARDS.filter(c => !c.categories.includes(category))
+  const matching = walletCards.filter(c => c.categories.includes(category))
+  const rest = walletCards.filter(c => !c.categories.includes(category))
   return [...matching, ...rest]
 }

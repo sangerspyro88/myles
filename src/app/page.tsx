@@ -4,12 +4,13 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import {
   detectCategory,
+  recommendCards,
   CATEGORY_LABELS,
-  MY_CARDS,
   type Category,
   type Card,
 } from '@/lib/cards'
 import { addEntry, getMonthSpend } from '@/lib/spend'
+import { getWalletCards } from '@/lib/wallet'
 
 export default function Home() {
   const [merchant, setMerchant] = useState('')
@@ -21,8 +22,9 @@ export default function Home() {
   const [spendMap, setSpendMap] = useState<Record<string, number>>({})
 
   useEffect(() => {
+    const cards = getWalletCards()
     const map: Record<string, number> = {}
-    for (const card of MY_CARDS) map[card.id] = getMonthSpend(card.id)
+    for (const card of cards) map[card.id] = getMonthSpend(card.id)
     setSpendMap(map)
   }, [])
 
@@ -31,19 +33,20 @@ export default function Home() {
     const detected = detectCategory(merchant)
     setCategory(detected)
 
-    // Refresh spend so cap filter is current
+    const walletCards = getWalletCards()
     const map: Record<string, number> = {}
-    for (const card of MY_CARDS) map[card.id] = getMonthSpend(card.id)
+    for (const card of walletCards) map[card.id] = getMonthSpend(card.id)
     setSpendMap(map)
 
-    // Top 3 matching cards that haven't hit their cap
-    const matching = MY_CARDS.filter(c => {
+    // Top 3 matching cards from wallet that haven't hit their cap
+    const ranked = recommendCards(detected, walletCards)
+    const top3 = ranked.filter(c => {
       if (!c.categories.includes(detected)) return false
       if (c.monthly_cap === 999999) return true
       return map[c.id] < c.monthly_cap
     }).slice(0, 3)
 
-    setResults(matching)
+    setResults(top3)
     setSearched(true)
     setLogged({})
   }
@@ -58,7 +61,6 @@ export default function Home() {
       category: category || 'other',
       date: new Date().toISOString(),
     })
-    // Update local spend map
     setSpendMap(prev => ({ ...prev, [cardId]: (prev[cardId] || 0) + amount }))
     setLogged(prev => ({ ...prev, [cardId]: true }))
     setLogAmount(prev => ({ ...prev, [cardId]: '' }))
@@ -93,9 +95,14 @@ export default function Home() {
             </button>
           </div>
 
-          <Link href="/tracker" className="mt-4 text-sm text-stone-400 hover:text-stone-600 transition">
-            Spend tracker →
-          </Link>
+          <div className="mt-4 flex gap-5">
+            <Link href="/tracker" className="text-sm text-stone-400 hover:text-stone-600 transition">
+              Spend tracker →
+            </Link>
+            <Link href="/wallet" className="text-sm text-stone-400 hover:text-stone-600 transition">
+              My wallet →
+            </Link>
+          </div>
         </div>
 
         {searched && (
@@ -109,7 +116,8 @@ export default function Home() {
 
             {results.length === 0 ? (
               <div className="bg-white border border-stone-100 rounded-2xl p-6 text-center text-stone-400 text-sm shadow-sm">
-                All eligible cards have hit their monthly cap. Check back after your statement resets.
+                All eligible cards have hit their monthly cap — or you have no cards in your wallet for this category.{' '}
+                <Link href="/wallet" className="underline hover:text-stone-600">Manage your wallet →</Link>
               </div>
             ) : (
               <div className="space-y-3">
@@ -127,12 +135,8 @@ export default function Home() {
                         isBest ? 'border-stone-300 shadow-md' : 'border-stone-100 shadow-sm'
                       }`}
                     >
-                      {/* Card header */}
                       <div className="flex items-center gap-4 mb-3">
-                        <div
-                          className="w-1 self-stretch rounded-full flex-shrink-0"
-                          style={{ backgroundColor: card.color }}
-                        />
+                        <div className="w-1 self-stretch rounded-full flex-shrink-0" style={{ backgroundColor: card.color }} />
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 mb-0.5">
                             <span className="font-semibold text-sm text-stone-800">{card.name}</span>
@@ -142,24 +146,21 @@ export default function Home() {
                               </span>
                             )}
                           </div>
-                          <p className="text-xs text-stone-400 truncate">{card.notes}</p>
+                          <p className="text-xs text-stone-400">{card.notes}</p>
+                          {card.cap_note && (
+                            <p className="text-xs text-amber-500 mt-0.5">{card.cap_note}</p>
+                          )}
                         </div>
                         <div className="text-right flex-shrink-0">
                           <div className="text-lg font-bold text-stone-800">{card.earn_rate} mpd</div>
-                          {cap && (
-                            <div className="text-xs text-stone-400">Cap: ${cap}/mo</div>
-                          )}
+                          {cap && <div className="text-xs text-stone-400">Cap: ${cap}/mo</div>}
                         </div>
                       </div>
 
-                      {/* Cap progress bar */}
                       {cap && (
                         <div className="mb-3">
                           <div className="h-1.5 bg-stone-100 rounded-full overflow-hidden">
-                            <div
-                              className="h-full rounded-full transition-all"
-                              style={{ width: `${pct}%`, backgroundColor: '#0d4f6e' }}
-                            />
+                            <div className="h-full rounded-full transition-all" style={{ width: `${pct}%`, backgroundColor: '#0d4f6e' }} />
                           </div>
                           <p className="text-xs text-stone-400 mt-1">
                             ${spent.toFixed(0)} spent · ${remaining!.toFixed(0)} remaining
@@ -167,16 +168,12 @@ export default function Home() {
                         </div>
                       )}
 
-                      {/* Log spend */}
                       <div className="flex gap-2 items-center">
                         <span className="text-xs text-stone-300">Log spend:</span>
                         <div className="flex gap-1.5 flex-1 items-center">
                           <span className="text-xs text-stone-400">$</span>
                           <input
-                            type="number"
-                            min="0"
-                            step="0.01"
-                            placeholder="0.00"
+                            type="number" min="0" step="0.01" placeholder="0.00"
                             value={logAmount[card.id] || ''}
                             onChange={e => setLogAmount(prev => ({ ...prev, [card.id]: e.target.value }))}
                             onKeyDown={e => e.key === 'Enter' && handleLog(card.id)}
@@ -185,10 +182,7 @@ export default function Home() {
                           {logged[card.id] ? (
                             <span className="text-xs text-emerald-500">✓ Logged</span>
                           ) : (
-                            <button
-                              onClick={() => handleLog(card.id)}
-                              className="text-xs bg-stone-100 hover:bg-stone-200 transition rounded-lg px-3 py-1 text-stone-600"
-                            >
+                            <button onClick={() => handleLog(card.id)} className="text-xs bg-stone-100 hover:bg-stone-200 transition rounded-lg px-3 py-1 text-stone-600">
                               Log
                             </button>
                           )}
