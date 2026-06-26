@@ -155,7 +155,7 @@ export const MERCHANT_CATEGORY_MAP: Record<string, Category> = {
   // In-store Shopping
   zara: 'shopping_instore',
   uniqlo: 'shopping_instore',
-  h&m: 'shopping_instore',
+  'h&m': 'shopping_instore',
   'charles & keith': 'shopping_instore',
   watsons: 'shopping_instore',
   guardian: 'shopping_instore',
@@ -180,7 +180,7 @@ export const MERCHANT_CATEGORY_MAP: Record<string, Category> = {
   simplygo: 'transport',
   mrt: 'transport',
   bus: 'transport',
-  ez-link: 'transport',
+  'ez-link': 'transport',
 
   // Travel
   singapore airlines: 'travel',
